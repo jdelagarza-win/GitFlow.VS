@@ -24,15 +24,26 @@ namespace GitFlowVS.Extension
             }
         }
 
-		private void HandleException(Exception ex)
-		{
-			Logger.Exception(ex);
-			ShowNotification(ex.Message, NotificationType.Error);
-		}
+        private void HandleException(Exception ex)
+        {
+            Logger.Exception(ex);
+            ShowNotification(ex.Message, NotificationType.Error);
+        }
+
+        public override void Refresh()
+        {
+            var service = GetService<ITeamExplorerPage>();
+            service.Refresh();
+        }
+
+        public void ShowErrorNotification(string message)
+        {
+            ShowNotification(message, NotificationType.Error);
+        }
 
         public void UpdateVisibleState()
         {
-            IsVisible = !GitFlowPage.GitFlowIsInstalled || GitFlowPage.ActiveRepo == null;
+            IsVisible = !GitFlowPage.GitFlowIsInstalled;
         }
     }
 }

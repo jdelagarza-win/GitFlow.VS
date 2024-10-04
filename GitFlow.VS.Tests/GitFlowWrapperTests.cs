@@ -137,22 +137,22 @@ namespace GitFlow.VS.Tests
             Assert.AreEqual(1, gf.AllFeatures.Count());
         }
 
-		[TestMethod]
-		public void FinishFeatureKeepLocalBranch()
-		{
-			var gf = new GitFlowWrapper(sampleRepoPath);
-			gf.Init(new GitFlowRepoSettings());
-			gf.StartFeature("X");
+        [TestMethod]
+        public void FinishFeatureKeepLocalBranch()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartFeature("X");
 
-			Assert.AreEqual(1, gf.AllFeatures.Count());
+            Assert.AreEqual(1, gf.AllFeatures.Count());
 
-			gf.FinishFeature("X", deleteLocalBranch: false);
+            gf.FinishFeature("X", deleteLocalBranch: false);
 
-			using (var repo = new Repository(sampleRepoPath))
-			{
-				Assert.IsTrue(repo.Branches.Any(b => !b.IsRemote && b.Name == "feature/X"));
-			}
-		}
+            using (var repo = new Repository(sampleRepoPath))
+            {
+                Assert.IsTrue(repo.Branches.Any(b => !b.IsRemote && b.Name == "feature/X"));
+            }
+        }
 
         [TestMethod]
         public void FinishFeatureSquashChanges()
@@ -312,7 +312,7 @@ namespace GitFlow.VS.Tests
             }
         }
 
-		[TestMethod]
+        [TestMethod]
         public void StartHotfix()
         {
             var gf = new GitFlowWrapper(sampleRepoPath);
@@ -405,6 +405,107 @@ namespace GitFlow.VS.Tests
             const string query = "Hooks and filters directory? [c:/Users/jakobe/Source/Repos/GitFlowTest/.git/hooks]";
             Assert.IsTrue(gf.IsHooksAndFiltersQuery(query));
         }
+
+        #region Bugfix Tests
+
+        [TestMethod]
+        public void ParseBugfixBranchQuery()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            const string query = "Bugfix branches? [bugfix/]";
+            Assert.IsTrue(gf.IsBugfixBranchQuery(query));
+        }
+
+        [TestMethod]
+        public void StartBugfix()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+
+            using (var repo = new Repository(sampleRepoPath))
+            {
+                Assert.IsTrue(repo.Branches.Any(b => !b.IsRemote && b.Name == "bugfix/X"));
+            }
+        }
+
+        [TestMethod]
+        public void FinishBugfix()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+            gf.FinishBugfix("X");
+            using (var repo = new Repository(sampleRepoPath))
+            {
+                //Bugfix branch should be deleted (default option)
+                Assert.IsFalse(repo.Branches.Any(b => !b.IsRemote && b.Name == "bugfix/X"));
+            }
+        }
+
+        [TestMethod]
+        public void FinishBugfixShouldRemoveIt()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+            gf.StartBugfix("Y");
+
+            Assert.AreEqual(2, gf.AllBugfixes.Count());
+
+            gf.FinishBugfix("X");
+
+            Assert.AreEqual(1, gf.AllBugfixes.Count());
+        }
+
+        [TestMethod]
+        public void FinishBugfixKeepLocalBranch()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+
+            Assert.AreEqual(1, gf.AllBugfixes.Count());
+
+            gf.FinishBugfix("X", deleteLocalBranch: false);
+
+            using (var repo = new Repository(sampleRepoPath))
+            {
+                Assert.IsTrue(repo.Branches.Any(b => !b.IsRemote && b.Name == "bugfix/X"));
+            }
+        }
+
+        [TestMethod]
+        public void FinishBugfixSquashChanges()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+
+            Assert.AreEqual(1, gf.AllBugfixes.Count());
+
+            gf.FinishBugfix("X", squash: true);
+
+            using (var repo = new Repository(sampleRepoPath))
+            {
+                Assert.IsTrue(repo.Branches.Any(b => !b.IsRemote && b.Name == "bugfix/X"));
+            }
+        }
+
+
+        [TestMethod]
+        public void GetAllBugfixs()
+        {
+            var gf = new GitFlowWrapper(sampleRepoPath);
+            gf.Init(new GitFlowRepoSettings());
+            gf.StartBugfix("X");
+            gf.StartBugfix("Y");
+
+            Assert.AreEqual(2, gf.AllBugfixes.Count());
+        }
+
+
+        #endregion
 
         //Necessary in order to delete directory containing readonly files
         public static void DeleteReadOnlyDirectory(string directory)
